@@ -1,30 +1,26 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
+#include <math.h>
 
-
-
-/**
- * Library-level functions.
- * You should use them in the main sections.
- */
+//function to make some tests
+double convertToDouble (uint64_t number) {
+    return *((double *)(&number));
+}
 
 uint64_t convertToUint64 (double number) {
     return *((uint64_t *)(&number));
 }
 
 bool getBit (const uint64_t number, const uint8_t index) {
-    /// Your code here...
+    uint64_t mask = (uint64_t)1 << index;
+    uint64_t result = mask & number;
+    result >>= index;
+    return result;
 }
 
-
-/**
- * Checkers here:
- */
-
 bool checkForPlusZero (uint64_t number) {
-    /// Your code here.
+    return number == 0x0000000000000000;
 }
 
 bool checkForMinusZero (uint64_t number) {
@@ -32,35 +28,85 @@ bool checkForMinusZero (uint64_t number) {
 }
 
 bool checkForPlusInf (uint64_t number) {
-    /// Your code here.
+    return number == 0x7FF0000000000000;
 }
 
 bool checkForMinusInf (uint64_t number) {
-    /// Your code here.
+    return number == 0xFFF0000000000000;
+}
+
+bool checkForNormal (uint64_t number) {
+    bool wasZeroInF = true;
+    for(int8_t i = 1; i <= 11; ++i)
+        if(getBit(number, 63 - i) == 1) {
+            wasZeroInF = false;
+            break;
+        }
+    if(wasZeroInF)
+        return false;
+
+    bool wasInfInF = true;
+    for(int8_t i = 1; i <= 11; ++i)
+        if(getBit(number, 63 - i) == 0) {
+            wasInfInF = false;
+            break;
+        }
+    if(wasInfInF)
+        return false;
+
+    return true;
 }
 
 bool checkForPlusNormal (uint64_t number) {
-    /// Your code here.
+    if(getBit(number, 63) == 1)
+        return false;
+
+    return checkForNormal(number);
 }
 
 bool checkForMinusNormal (uint64_t number) {
-    /// Your code here.
+    if(getBit(number, 63) == 0)
+        return false;
+
+    return checkForNormal(number);
+}
+
+bool checkForDenormal (uint64_t number) {
+    for(int8_t i = 1; i <= 11; ++i)
+        if(getBit(number, 63 - i) == 1)
+            return false;
+
+    return (getBit(number, 0) == 1);
 }
 
 bool checkForPlusDenormal (uint64_t number) {
-    /// Your code here.
+    if(getBit(number, 63) == 1)
+        return false;
+
+    return checkForDenormal(number);
 }
 
 bool checkForMinusDenormal (uint64_t number) {
-    /// Your code here.
+    if(getBit(number, 63) == 0)
+        return false;
+
+    return checkForDenormal(number);
 }
 
 bool checkForSignalingNan (uint64_t number) {
-    /// Your code here.
+    for(int8_t i = 1; i <= 11; ++i)
+        if(getBit(number, 63 - i) == 0)
+            return false;
+
+    return (getBit(number, 51) == 0 && getBit(number, 0) == 1);
 }
 
 bool checkForQuietNan (uint64_t number) {
-    /// Your code here.
+    for(int8_t i = 1; i <= 11; ++i)
+        if(getBit(number, 63 - i) == 0)
+            return false;
+
+    return (getBit(number, 51) == 1);
 }
 
 
@@ -108,4 +154,37 @@ void classify (double number) {
     else {
         printf("Error.\n");
     }
+}
+
+int main(void) {
+
+    double x = 0;
+    classify(+x);
+
+    classify(-x);
+
+    x = INFINITY;
+    classify(x);
+
+    classify(-x);
+
+    x = 1e12;
+    classify(x);
+
+    classify(-x);
+
+    x = 2.2205921692043672e-308;
+    classify(x);
+
+    classify(-x);
+
+    uint64_t a = 0x7FF7F7BFFBDFFFFF;
+    x = convertToDouble(a);
+    classify(x);
+
+    a = 0x7FFFF7BFFBDFFFFF;
+    x = convertToDouble(a);
+    classify(x);
+
+    return 0;
 }
