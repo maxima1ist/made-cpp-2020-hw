@@ -4,6 +4,8 @@
 
 count_det:
 
+	push {r4-r6}
+
 	mov r1, #0
 
 	ldr r2, [r0, #0]
@@ -43,5 +45,7 @@ count_det:
 	add r1, r1, r2
 
 	mov r0 ,r1
+
+	pop {r4-r6}
 
 	bx lr
