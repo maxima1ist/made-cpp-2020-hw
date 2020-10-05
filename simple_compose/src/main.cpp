@@ -3,10 +3,29 @@
 
 typedef std::function<int (int)> Op;
 
+int someIdempotentFunction (int x) {
+    return x;
+}
 
+Op composeOfTwo (Op funcOne, Op funcTwo) {
+    return [funcOne, funcTwo] (int x) -> int {
+        return funcTwo(funcOne(x));
+    };
+}
 
 Op compose (size_t n, Op ops[]) {
-    /// Your code goes here.
+    if(n <= 0)
+        return someIdempotentFunction;
+
+    if(n == 1)
+        return ops[0];
+
+
+    Op result = composeOfTwo(ops[n - 1], ops[n - 2]);
+    for(size_t i = 3; i <= n; ++i)
+        result = composeOfTwo(result, ops[n - i]);
+
+    return result;
 }
 
 
