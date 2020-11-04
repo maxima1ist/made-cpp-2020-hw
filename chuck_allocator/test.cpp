@@ -62,5 +62,11 @@ int main() {
     int* arrTwo = other.allocate(10);
     other.deallocate(arrTwo, 10);
 
+    Allocator<A> allocA, allocB, allocC, allocD;
+    allocA.allocate(2);
+    std::vector<A, decltype(allocA)> someStruct;
+
+    allocD = allocC = allocB = allocA;
+
     return 0;
 }

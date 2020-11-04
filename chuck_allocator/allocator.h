@@ -4,18 +4,17 @@
 template<class T>
 class Allocator {
 private:
-    static const std::size_t CHUNK_SIZE = 1 << 9;
 
     struct Chunk {
-        Chunk* prev;
+        Chunk* next;
         char* memory;
         char* currentAddress;
         std::size_t allocatorsCount;
 
-        explicit Chunk(const size_t& allocatorsCount)
-            : memory(new char[CHUNK_SIZE]), currentAddress(memory), prev(nullptr), allocatorsCount(allocatorsCount) {}
+        explicit Chunk(const std::size_t& allocatorsCount)
+            : memory(new char[CHUNK_SIZE]), currentAddress(memory), next(nullptr), allocatorsCount(allocatorsCount) {}
 
-        char* getAllocatedBlock(const size_t& size) {
+        char* getAllocatedBlock(const std::size_t& size) {
             if (memory + CHUNK_SIZE - currentAddress >= size) {
                 char* buffer = currentAddress;
                 currentAddress += size;
@@ -25,11 +24,9 @@ private:
             }
         }
 
-        void deallocateBlock(char* p, const size_t& size) {
-            //сложна
-        }
+        void deallocateBlock(char* p, const std::size_t& size) {}
 
-        bool hasPointer(const char* p, const size_t& size) const {
+        bool hasPointer(const char* p, const std::size_t& size) const {
             return (memory <= p) && (p <= memory + CHUNK_SIZE) && (memory + CHUNK_SIZE - p >= size);
         }
 
@@ -42,7 +39,7 @@ private:
 
     void destroyAllocator() {
         while (currentChunk != nullptr) {
-            Chunk* buffer = currentChunk->prev;
+            Chunk* buffer = currentChunk->next;
             if (currentChunk->allocatorsCount == 1) {
                 delete currentChunk;
             } else {
@@ -58,7 +55,7 @@ private:
         Chunk* bufferCopy = copy.currentChunk;
         while (bufferCopy != nullptr) {
             ++(bufferCopy->allocatorsCount);
-            bufferCopy = bufferCopy->prev;
+            bufferCopy = bufferCopy->next;
         }
     }
 
@@ -66,11 +63,13 @@ public:
 
     typedef T value_type;
     typedef T* pointer;
-    typedef const T* const_pointer;
+    typedef const pointer const_pointer;
     typedef T& reference;
     typedef const T& const_reference;
     typedef std::size_t size_type;
     typedef std::ptrdiff_t difference_type;
+
+    static const size_type CHUNK_SIZE = 1 << 9;
 
     template<class U>
     struct rebind {
@@ -98,60 +97,41 @@ public:
         return *this;
     }
 
-    T* allocate(const std::size_t& size) {
+    pointer allocate(const size_type& size) {
         if (size > CHUNK_SIZE) {
             throw "Incorrect size!";
         }
 
         if (currentChunk != nullptr) {
-            size_t allocatorsCount = currentChunk->allocatorsCount;
+            size_type allocatorsCount = currentChunk->allocatorsCount;
 
             Chunk* buffer = currentChunk;
             char* allocatedBlock;
-            while (buffer->prev != nullptr) {
+            while (buffer->next != nullptr) {
                 allocatedBlock = buffer->getAllocatedBlock(size * sizeof(T));
                 if (allocatedBlock != nullptr) {
-                    return (T*) allocatedBlock;
+                    return (pointer) allocatedBlock;
                 }
-                buffer = buffer->prev;
+                buffer = buffer->next;
             }
 
             allocatedBlock = buffer->getAllocatedBlock(size * sizeof(T));
             if (allocatedBlock != nullptr) {
-                return (T*) allocatedBlock;
+                return (pointer) allocatedBlock;
             } else {
                 Chunk* newChunk = new Chunk(allocatorsCount);
                 allocatedBlock = newChunk->getAllocatedBlock(size * sizeof(T));
-                newChunk->prev = currentChunk;
-                currentChunk = newChunk;
-                return (T*) allocatedBlock;
+                buffer->next = newChunk;
+                return (pointer) allocatedBlock;
             }
         } else {
             currentChunk = new Chunk(1);
             char* allocatedBlock = currentChunk->getAllocatedBlock(size * sizeof(T));
-            return (T*) allocatedBlock;
+            return (pointer) allocatedBlock;
         }
     }
 
-    void deallocate(T* p, const std::size_t& size) {
-        /*
-        if (p == nullptr || size > CHUNK_SIZE) {
-            throw "Incorrect pointer or size!";
-        }
-
-        char* deallocationPointer = (char*) p;
-        Chunk* buffer = currentChunk;
-        while (buffer != nullptr) {
-            if (buffer->hasPointer(deallocationPointer, size)) {
-                buffer->deallocateBlock(deallocationPointer, size);
-                return;
-            }
-            buffer = buffer->prev;
-        }
-
-        throw "Can not to deallocate size of memory in such pointer!";
-         */
-    }
+    void deallocate(pointer p, const size_type& size) {}
 
     template<typename U, typename... Args>
     void construct(U* ptr, Args&& ... args) {
