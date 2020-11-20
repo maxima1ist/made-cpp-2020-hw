@@ -1,0 +1,3 @@
+/media/maxima1ist/Programs and projects/MADE/Advanced C++/ДЗ/made-cpp-2020-hw/hw_7_meanwhile_in_the_seventh_galaxy/first_variant/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/media/maxima1ist/Programs and projects/MADE/Advanced C++/ДЗ/made-cpp-2020-hw/hw_7_meanwhile_in_the_seventh_galaxy/first_variant/cmake-build-debug/CMakeFiles/edit_cache.dir
+/media/maxima1ist/Programs and projects/MADE/Advanced C++/ДЗ/made-cpp-2020-hw/hw_7_meanwhile_in_the_seventh_galaxy/first_variant/cmake-build-debug/CMakeFiles/meanwhile_in_the_seventh_galaxy_first_variant.dir
