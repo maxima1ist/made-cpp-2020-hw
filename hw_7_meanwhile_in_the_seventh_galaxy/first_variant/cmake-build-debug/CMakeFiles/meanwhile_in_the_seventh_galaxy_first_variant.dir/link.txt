@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/meanwhile_in_the_seventh_galaxy_first_variant.dir/src/main.cpp.o  -o meanwhile_in_the_seventh_galaxy_first_variant 
